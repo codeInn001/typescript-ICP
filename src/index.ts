@@ -1,6 +1,13 @@
+
+// import several dependencies which our smart contract will make use of.
 import { $query, $update, Record, StableBTreeMap, Vec, match, Result, nat64, ic, Opt, float32 } from 'azle';
 import { v4 as uuidv4 } from 'uuid';
 
+
+// define the structure of the data we'll be working with. In our case, this is the 'Blog Post' that will be posted on the board
+/**
+ * This type represents a blog post that can be listed on a board.
+ */
 type BlogPost = Record<{
     id: string;
     name: string;
@@ -13,6 +20,8 @@ type BlogPost = Record<{
     updatedAt: Opt<nat64>;
 }>
 
+
+// specify a blog post payload. This specifies the type of data to send to our smart contract
 type BlogPostPayload = Record<{
     name: string;
     title: string;
@@ -20,6 +29,7 @@ type BlogPostPayload = Record<{
     attachmentURL: string;
 }>
 
+// Specify comments that can be listed in our blog post.
 type Comment = Record<{
     id: string;
     body: string;
@@ -27,21 +37,22 @@ type Comment = Record<{
     createdAt: nat64;
 }>
 
+// specific a comment payload. This specifies the type of data to send to our smart contract
 type CommentPayload = Record<{
     body: string;
     name: string;
 }>
 
-
-
-
+// stores our blog posts for easy retrieval 
 const blogPostStorage = new StableBTreeMap<string, BlogPost>(0, 44, 1024);
 
+// gets all blog posts from storage
 $query;
 export function getBlogPosts(): Result<Vec<BlogPost>, string> {
     return Result.Ok(blogPostStorage.values());
 }
 
+// gets a specific blog post from storage
 $query;
 export function getBlogPost(id: string): Result<BlogPost, string> {
     return match(blogPostStorage.get(id), {
@@ -50,6 +61,8 @@ export function getBlogPost(id: string): Result<BlogPost, string> {
     });
 }
 
+
+// creates a new blog post
 $update;
 export function addBlogPost(payload: BlogPostPayload): Result<BlogPost, string> {
     const blogPost: BlogPost = { id: uuidv4(), createdAt: ic.time(), updatedAt: Opt.None, likes: 0, comments: [], ...payload };
@@ -57,6 +70,8 @@ export function addBlogPost(payload: BlogPostPayload): Result<BlogPost, string> 
     return Result.Ok(blogPost);
 }
 
+
+//Edit and updates previous blog post
 $update;
 export function updateBlogPost(id: string, payload: BlogPostPayload): Result<BlogPost, string> {
     return match(blogPostStorage.get(id), {
@@ -69,6 +84,8 @@ export function updateBlogPost(id: string, payload: BlogPostPayload): Result<Blo
     });
 }
 
+
+// delete a specific blog post
 $update;
 export function deleteBlogPost(id: string): Result<BlogPost, string> {
     return match(blogPostStorage.remove(id), {
@@ -77,6 +94,8 @@ export function deleteBlogPost(id: string): Result<BlogPost, string> {
     });
 }
 
+
+// like a specific blog post
 $update;
 export function likeBlogPost(id: string): Result<BlogPost, string> {
     return match(blogPostStorage.get(id), {
@@ -90,6 +109,7 @@ export function likeBlogPost(id: string): Result<BlogPost, string> {
 }
 
 
+// give a comment on a blog post
 $update;
 export function giveComment(id: string, payload: CommentPayload): Result<BlogPost, string> {
     return match(blogPostStorage.get(id), {
@@ -108,6 +128,8 @@ export function giveComment(id: string, payload: CommentPayload): Result<BlogPos
     });
 }
 
+
+// update comment
 $update;
 export function updateComment(id: string, payload: CommentPayload): Result<BlogPost, string> {
     return match(blogPostStorage.get(id), {
