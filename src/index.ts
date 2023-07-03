@@ -118,8 +118,10 @@ export function giveComment(id: string, payload: CommentPayload): Result<BlogPos
                 id: uuidv4(),
                 body: payload.body,
                 name: payload.name,
-                createdAt: ic.time()
-            };
+                createdAt: ic.time(),
+                updatedAt: Opt.None
+            }
+                
             const updatedBlogPost: BlogPost = { ...blogPost, comments: [...blogPost.comments, comment] };
             blogPostStorage.insert(id, updatedBlogPost);
             return Result.Ok<BlogPost, string>(updatedBlogPost);
@@ -127,6 +129,7 @@ export function giveComment(id: string, payload: CommentPayload): Result<BlogPos
         None: () => Result.Err<BlogPost, string>(`Blog post with id=${id} not found`)
     });
 }
+
 
 
 // update comment
